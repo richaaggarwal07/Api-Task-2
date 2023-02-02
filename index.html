@@ -1,0 +1,232 @@
+<html>
+
+<body>
+    <input type="text" placeholder="search.." id="data" onkeyup="search()">
+    <!-- <button onclick="ascending()">Ascending</button>
+    <button onclick="descending()">Descending</button> -->
+    <input type="text" id="sortType" name="sortType" placeholder="sort on basis of...">
+    <select name="options" id="option">
+        <option value="Asc">Asc</option>
+        <option value="Des">Dec</option>
+      </select>
+      <button onclick="sort()"> SORT </button>
+    <div>
+        <table id="tb" border="2px"  width="100%">
+        
+            <tr>
+                <th>age</th>
+                <th>email</th>
+                <th>gender</th>
+                <th>id name</th>
+                <th>city</th>
+                <th>country</th>
+                <!-- <th>state</th>
+                <th>street</th>
+                <th>username</th>
+                <th>First Name</th>
+                <th>Last Name</th> -->
+            </tr>
+        </table>
+
+        <!-- <div class="card-actions">
+            <span>Showing
+                <span id="card-count"></span> of
+                <span id="card-total"></span> cards
+            </span>
+        </div> -->
+
+    </div>
+<button onclick=getMoreData()>Data</button>
+    <script>    
+
+        let page=1;
+        let results=20;
+
+        let objectArr = []
+        function makeRequest() {
+            const url =`http://localhost:3000/?page=${page}&result=${results}`;
+            page+=1;
+            fetch(url).then(res => res.json()).then(data => {
+                // console.log(data.results);
+                 data.results.forEach(element => {
+                    objectArr.push({"name":element.name.first, "gender":element.gender,"age":element.dob.age,"state":element.location.state,"country":element.location.country
+                ,"img":element.picture.thumbnail})
+                }); 
+                createRow(data.results);
+            })
+        }
+
+
+        function getMoreData()
+        {
+            makeRequest();    
+        }
+
+
+        function createRow(obj) {
+           
+            
+            let mainTable = document.getElementById('tb');
+            for (let i in obj) {
+                let table_header_row = document.createElement('tr');
+                // console.log(i);
+                let img = document.createElement("td");
+
+                let imgsrc = document.createElement('img');
+                imgsrc.src = obj[i].picture.thumbnail;
+                img.appendChild(imgsrc);
+                table_header_row.appendChild(img);
+
+                let name = document.createElement("td");
+
+                name.innerHTML = obj[i].name.first + obj[i].name.last;
+                table_header_row.appendChild(name);
+
+                let gender = document.createElement("td");
+                gender.innerHTML = obj[i].gender;
+
+                table_header_row.appendChild(gender);
+                let age = document.createElement("td");
+
+                age.innerHTML = obj[i].dob.age;
+                table_header_row.appendChild(age);
+
+                let state = document.createElement("td");
+                state.innerHTML = obj[i].location.state;
+                table_header_row.appendChild(state);
+
+                let country = document.createElement("td");
+                country.innerHTML = obj[i].location.country;
+
+                table_header_row.appendChild(country);
+                tb.appendChild(table_header_row);
+            }
+        }
+        makeRequest();
+
+
+        let table = document.getElementById("tb");
+        function search(){
+            let searchVal = document.getElementById('data').value.toLowerCase();
+            let trows = table.rows;
+            console.log("table search");
+            console.log(trows);
+            for(let i = 1; i < trows.length ; i++){
+                let cols = trows[i].getElementsByTagName('td');
+                let flag = false;
+                for(d of cols){
+                    colVal = d.textContent || d.innerText;
+                    if(colVal.toLowerCase().includes(searchVal)){
+                        flag = true;
+                        break;
+                    }
+                }
+                if(flag == false){
+                    trows[i].style.display = 'none';
+                }
+                else{
+                    trows[i].style.display = "";
+                }
+            }
+        }
+
+        // function GetSortOrder(prop) {
+        //     return function (a, b) {
+        //         if (a[prop] > b[prop]) {
+        //             return 1;
+        //         } else if (a[prop] < b[prop]) {
+        //             return -1;
+        //         }
+        //         return 0;
+        //     }
+        // }
+
+
+        function sort(){
+            let clm = document.getElementById('sortType').value;
+            if(clm == null){
+                clm = name;
+            }
+
+            let sortOption = document.getElementById('option').value;
+
+            if(sortOption == "Asc"){
+
+                let switchs = true;
+                while(switchs){
+                    let trows = table.rows;
+                    switchs = false;
+                    let should=false;
+                    let i;
+                for(i = 1; i < (trows.length - 1); i++){
+                    let a = trows[i].getElementsByTagName('td');
+                    console.log("here",a[3].innerHTML);
+                    let b = trows[i+1].getElementsByTagName('td');
+                        if(a[clm].innerHTML > b[clm].innerHTML){
+                            should = true;
+        
+                            break;
+                        }
+                }
+                if(should){
+                    trows[i].parentNode.insertBefore(trows[i+1],trows[i]);
+                    switchs = true;
+                }
+            }
+        }
+        else{
+            let switchs = true;
+            while(switchs){
+                let trows = table.rows;
+                switchs = false;
+                let should=false;
+                let i;
+            for(i = 1; i < (trows.length - 1); i++){
+                let a = trows[i].getElementsByTagName('td');
+                let b = trows[i+1].getElementsByTagName('td');
+                    if(a[clm].innerHTML < b[clm].innerHTML){
+                        should = true;
+                        break;
+                    }
+            }
+            if(should){
+                trows[i].parentNode.insertBefore(trows[i+1],trows[i]);
+                switchs = true;
+            }
+        }
+        }
+        }
+
+        // function sortFunction(nameAttribute) {
+        //     let toggleSort = document.getElementsByName(nameAttribute);
+        //     if (toggleSort[1].innerHTML == "Ascending") {
+        //         objectArr.sort(GetSortOrder(nameAttribute)); //Pass the attribute to be sorted on
+        //         for (var item in objectArr) {
+        //             console.log(objectArr[item].name);
+        //         }
+        //         toggleSort[1].innerHTML = "Descending";
+        //     } else {
+        //         objectArr.sort(GetSortOrder(nameAttribute)).reverse(); //Pass the attribute to be sorted on
+        //         for (var item in objectArr) {
+        //             console.log(objectArr[item].name);
+        //         }
+        //         toggleSort[1].innerHTML = "Ascending";
+        //     }
+        // }
+        // function ascending() {
+        //     objectArr.sort(GetSortOrder("name"));
+        //     for (var item in objectArr) {
+        //         console.log(objectArr[item].name)
+        //     }
+        // }
+        // function descending() {
+        //     objectArr.sort(GetSortOrder("name")).reverse;
+        //     for (var item in objectArr) {
+        //         console.log(objectArr[item].name)
+        //     }
+        // }
+    </script>
+
+</body>
+
+</html>
